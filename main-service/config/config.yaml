@@ -1,0 +1,12 @@
+server:
+  listenurl: ":8080"
+auth:
+  key: "thisisatestkeyusedfordevelopmentpurposeonly"
+logger:
+  level: "DEBUG"
+db:
+  dialect: "sqlite3"
+  sqlite:
+    filename: "test.db"
+worker:
+  enabled: true
