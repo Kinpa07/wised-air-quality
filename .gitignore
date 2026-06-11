@@ -2,6 +2,7 @@
 build/
 *.test
 *.out
+*.exe
 # vendor/ is committed on purpose for offline, reproducible builds
 
 # ── SQLite / local data ──
