@@ -1,5 +1,7 @@
 package sensor_readings_collector_pkg
 
+import "time"
+
 type CreateClientRequest struct {
 	Payload struct {
 		ID         string     `json:"id" validate:"required,uuid4"`
@@ -13,4 +15,13 @@ type GetClientsRequest struct {
 	After  *string `in:"query=after"`
 	Before *string `in:"query=before"`
 	Limit  *int    `in:"query=limit"`
+}
+
+type CreateReadingRequest struct {
+	ClientID string `in:"path=client_id"`
+	Payload  struct {
+		PM25       *float64  `json:"pm2_5" validate:"required,gte=0,lte=1000"`
+		PM10       *float64  `json:"pm10" validate:"required,gte=0,lte=1000"`
+		MeasuredAt time.Time `json:"timestamp" validate:"required"`
+	} `in:"body=json"`
 }
