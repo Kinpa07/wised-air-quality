@@ -7,6 +7,7 @@ require (
 	github.com/ggicci/httpin v0.20.4
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/go-playground/validator/v10 v10.30.3
+	github.com/paulmach/orb v0.13.0
 	github.com/pilagod/gorm-cursor-paginator/v2 v2.7.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/spf13/cobra v1.10.2
