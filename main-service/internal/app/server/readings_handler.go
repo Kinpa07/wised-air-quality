@@ -27,3 +27,16 @@ func CreateReadingHandler() func(w http.ResponseWriter, r *http.Request) {
 		response.OkJson(r, w, result)
 	}
 }
+
+func GetReadingHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		input := r.Context().Value(httpin.Input).(*sensor_readings_collector_pkg.GetReadingsRequest)
+		result, err := controller.GetReading(r.Context(), input)
+		if err != nil {
+			response.RespondError(r, w, err)
+			return
+		}
+
+		response.OkJson(r, w, result)
+	}
+}

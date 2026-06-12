@@ -16,12 +16,14 @@ type Reading struct {
 	MeasuredAt time.Time `json:"timestamp"`
 }
 
+type Cursor struct {
+	After  *string `json:"after"`
+	Before *string `json:"before"`
+}
+
 type GetClientsResponse struct {
 	Data   []Client `json:"data"`
-	Cursor struct {
-		After  *string `json:"after"`
-		Before *string `json:"before"`
-	} `json:"cursor"`
+	Cursor Cursor   `json:"cursor"`
 }
 
 type CreateClientResponse struct {
@@ -31,4 +33,9 @@ type CreateClientResponse struct {
 type CreateReadingResponse struct {
 	Data    Reading `json:"data"`
 	Created bool    `json:"-"`
+}
+
+type GetReadingsResponse struct {
+	Data   []Reading `json:"data"`
+	Cursor Cursor    `json:"cursor"`
 }

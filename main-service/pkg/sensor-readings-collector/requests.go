@@ -25,3 +25,15 @@ type CreateReadingRequest struct {
 		MeasuredAt time.Time `json:"timestamp" validate:"required"`
 	} `in:"body=json"`
 }
+
+type GetReadingsRequest struct {
+	ClientID string `in:"path=client_id"`
+
+	After  *string `in:"query=after"`
+	Before *string `in:"query=before"`
+	Limit  *int    `in:"query=limit"`
+
+	Since *time.Time `in:"query=since"`
+	From  *time.Time `in:"query=from"`
+	To    *time.Time `in:"query=to"`
+}

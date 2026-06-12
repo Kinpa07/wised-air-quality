@@ -5,6 +5,7 @@ package testutil
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"go-service-skeleton/internal/app/database"
 	sensor_readings_collector_pkg "go-service-skeleton/pkg/sensor-readings-collector"
@@ -72,5 +73,21 @@ func SeedClientAt(tb testing.TB, gdb *gorm.DB, id string, lat, lng float64) {
 	}
 	if err := gdb.Create(&client).Error; err != nil {
 		tb.Fatalf("seed client %s: %v", id, err)
+	}
+}
+
+// SeedReading inserts one reading for a station at the given measured-at time.
+// measuredAt is normalized to UTC, matching what the ingest controller stores.
+func SeedReading(tb testing.TB, gdb *gorm.DB, clientID string, pm25, pm10 float64, measuredAt time.Time) {
+	tb.Helper()
+
+	reading := database.Reading{
+		ClientID:   clientID,
+		PM25:       pm25,
+		PM10:       pm10,
+		MeasuredAt: measuredAt.UTC(),
+	}
+	if err := gdb.Create(&reading).Error; err != nil {
+		tb.Fatalf("seed reading for %s at %s: %v", clientID, measuredAt, err)
 	}
 }

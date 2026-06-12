@@ -7,6 +7,7 @@ import (
 
 	"github.com/SintroSecurity/go-libraries/db"
 	"github.com/SintroSecurity/go-libraries/router/response"
+	"github.com/pilagod/gorm-cursor-paginator/v2/paginator"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -50,4 +51,57 @@ func CreateReading(ctx context.Context, req *sensor_readings_collector_pkg.Creat
 		Created: result.RowsAffected > 0,
 	}, nil
 
+}
+
+func GetReading(ctx context.Context, req *sensor_readings_collector_pkg.GetReadingsRequest) (*sensor_readings_collector_pkg.GetReadingsResponse, *response.Error) {
+	gdb := db.GetDatabaseFromContext(ctx)
+
+	var client database.Client
+	err := gdb.Select("id").First(&client, "id = ?", req.ClientID).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, response.NewResponseError(response.ErrorCodeNotFound, response.ErrorMessageNotFound)
+		}
+		return nil, response.NewResponseError(response.ErrorCodeInternal, response.ErrorMessageInternalServerError)
+	}
+
+	query := gdb.Where("client_id = ?", req.ClientID)
+
+	if req.From != nil && req.To != nil {
+		query = query.Where("measured_at BETWEEN ? AND ?", *req.From, *req.To)
+	} else if req.Since != nil {
+		query = query.Where("measured_at >= ?", *req.Since)
+	}
+
+	order := paginator.DESC
+	p := sensor_readings_collector_pkg.CreatePaginator(
+		paginator.Cursor{After: req.After, Before: req.Before},
+		&order,
+		[]string{"MeasuredAt"},
+		req.Limit,
+	)
+
+	var readings []database.Reading
+
+	_, cursor, err := p.Paginate(query, &readings)
+	if err != nil {
+		return nil, response.NewResponseError(response.ErrorCodeInternal, response.ErrorMessageInternalServerError)
+	}
+
+	data := make([]sensor_readings_collector_pkg.Reading, len(readings))
+
+	for i, u := range readings {
+		data[i] = sensor_readings_collector_pkg.Reading{
+			ClientID:   u.ClientID,
+			PM25:       u.PM25,
+			PM10:       u.PM10,
+			MeasuredAt: u.MeasuredAt,
+		}
+	}
+
+	res := &sensor_readings_collector_pkg.GetReadingsResponse{Data: data}
+	res.Cursor.After = cursor.After
+	res.Cursor.Before = cursor.Before
+
+	return res, nil
 }
