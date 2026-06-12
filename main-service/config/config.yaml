@@ -10,3 +10,9 @@ db:
     filename: "test.db"
 worker:
   enabled: true
+display:
+  active_window_minutes: 15
+  connection_window_minutes: 1440
+  expected_interval_minutes: 5
+  poor_connection_threshold: 0.8
+  default_page_size: 50
