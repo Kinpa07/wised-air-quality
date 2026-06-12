@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"go-service-skeleton/internal/app/database"
+	"go-service-skeleton/internal/testutil"
 	sensor_readings_collector_pkg "go-service-skeleton/pkg/sensor-readings-collector"
 
 	"github.com/SintroSecurity/go-libraries/db"
 	"github.com/SintroSecurity/go-libraries/router/response"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -19,41 +19,14 @@ const (
 	unknownClient = "99999999-9999-9999-9999-999999999999"
 )
 
-func setupTestDB(t *testing.T) (context.Context, *gorm.DB) {
+// ctxWithDB builds a migrated in-memory DB (via testutil) and the context the
+// controllers read it back out of — the one thing testutil can't do, since it
+// is deliberately context-agnostic.
+func ctxWithDB(t *testing.T) (context.Context, *gorm.DB) {
 	t.Helper()
-
-	gdb, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{TranslateError: true})
-	if err != nil {
-		t.Fatalf("open in-memory sqlite: %v", err)
-	}
-
-	sqlDB, err := gdb.DB()
-	if err != nil {
-		t.Fatalf("get sql.DB: %v", err)
-	}
-	sqlDB.SetMaxOpenConns(1) // keep the in-memory DB on one connection
-	t.Cleanup(func() { _ = sqlDB.Close() })
-
-	if err := database.Migrate(gdb); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
-
+	gdb := testutil.NewMemDB(t)
 	ctx := db.NewContextWithDatabase(context.Background(), gdb)
 	return ctx, gdb
-}
-
-func seedClient(t *testing.T, gdb *gorm.DB, id string) {
-	t.Helper()
-
-	client := database.Client{
-		ID:        id,
-		Type:      sensor_readings_collector_pkg.ClientTypeDeviceV1,
-		Latitude:  52.52,
-		Longitude: 13.405,
-	}
-	if err := gdb.Create(&client).Error; err != nil {
-		t.Fatalf("seed client: %v", err)
-	}
 }
 
 func readingReq(clientID string, pm25, pm10 float64, ts time.Time) *sensor_readings_collector_pkg.CreateReadingRequest {
@@ -101,9 +74,9 @@ func Test_CreateReading(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, gdb := setupTestDB(t)
+			ctx, gdb := ctxWithDB(t)
 			if tt.seed {
-				seedClient(t, gdb, tt.req.ClientID)
+				testutil.SeedClient(t, gdb, tt.req.ClientID)
 			}
 
 			res, errResp := CreateReading(ctx, tt.req)
@@ -140,8 +113,8 @@ func Test_CreateReading(t *testing.T) {
 }
 
 func Test_CreateReading_NormalizesMeasuredAtToUTC(t *testing.T) {
-	ctx, gdb := setupTestDB(t)
-	seedClient(t, gdb, knownClient)
+	ctx, gdb := ctxWithDB(t)
+	testutil.SeedClient(t, gdb, knownClient)
 
 	berlin := time.FixedZone("CEST", 2*60*60)
 	local := time.Date(2026, 6, 12, 11, 0, 0, 0, berlin)

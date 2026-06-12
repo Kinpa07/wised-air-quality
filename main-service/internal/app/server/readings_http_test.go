@@ -10,13 +10,12 @@ import (
 	"testing"
 
 	"go-service-skeleton/internal/app/database"
+	"go-service-skeleton/internal/testutil"
 	sensor_readings_collector_pkg "go-service-skeleton/pkg/sensor-readings-collector"
 
 	"github.com/SintroSecurity/go-libraries/logger"
 	"github.com/SintroSecurity/go-libraries/metrics"
 	"github.com/SintroSecurity/go-libraries/router"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 const (
@@ -39,25 +38,19 @@ func body(ts string) string {
 var sharedHandler http.Handler
 
 func TestMain(m *testing.M) {
-	gdb, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{TranslateError: true})
-	if err != nil {
-		panic(fmt.Sprintf("open in-memory sqlite: %v", err))
-	}
-	sqlDB, err := gdb.DB()
-	if err != nil {
-		panic(fmt.Sprintf("get sql.DB: %v", err))
-	}
-	sqlDB.SetMaxOpenConns(1) // one connection keeps the :memory: db alive for the run
+	gdb, err := testutil.OpenMemDB()
 
-	if err := database.Migrate(gdb); err != nil {
-		panic(fmt.Sprintf("migrate: %v", err))
+	if err != nil {
+		panic(fmt.Sprintf("open mem db: %v", err))
 	}
+
 	seed := database.Client{
 		ID:        knownClient,
 		Type:      sensor_readings_collector_pkg.ClientTypeDeviceV1,
 		Latitude:  52.52,
 		Longitude: 13.405,
 	}
+
 	if err := gdb.Create(&seed).Error; err != nil {
 		panic(fmt.Sprintf("seed client: %v", err))
 	}
@@ -74,7 +67,6 @@ func TestMain(m *testing.M) {
 	sharedHandler = r
 
 	code := m.Run()
-	_ = sqlDB.Close()
 	os.Exit(code)
 }
 
