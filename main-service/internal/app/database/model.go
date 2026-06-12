@@ -22,9 +22,9 @@ type Model struct {
 }
 
 type Reading struct {
-	ClientID   string  `gorm:"size:36;uniqueIndex:idx_reading_dedup;index:idx_reading_latest_lookup"`
+	ClientID   string  `gorm:"size:36;uniqueIndex:idx_reading_dedup"`
 	PM25       float64 `gorm:"column:pm2_5"`
 	PM10       float64
-	MeasuredAt time.Time `gorm:"uniqueIndex:idx_reading_dedup;index:idx_reading_latest_lookup,sort:desc"`
+	MeasuredAt time.Time `gorm:"uniqueIndex:idx_reading_dedup,sort:desc"`
 	CreatedAt  time.Time
 }
