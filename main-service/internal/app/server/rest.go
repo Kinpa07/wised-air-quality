@@ -38,4 +38,5 @@ func InitRoutingTable(ctx context.Context, r *router.Router) {
 	r.With(httpin.NewInput(sensor_readings_collector_pkg.CreateReadingRequest{}), router.NewValidator(ctx)).NewRoute(http.MethodPost, "v1", "clients/{client_id}:read", CreateReadingHandler())
 	r.With(httpin.NewInput(sensor_readings_collector_pkg.GetReadingsRequest{})).NewRoute(http.MethodGet, "v1", "clients/{client_id}/readings", GetReadingHandler())
 	r.NewRoute(http.MethodGet, "v1", "stations", GetStationsHandler())
+	r.NewRoute(http.MethodGet, "v1", "stats", GetStatsHandler())
 }

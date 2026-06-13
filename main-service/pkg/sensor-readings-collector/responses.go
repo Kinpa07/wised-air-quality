@@ -28,6 +28,13 @@ type Station struct {
 	Connection ConnectionQuality `json:"connection"`
 }
 
+type Stats struct {
+	ActiveSensors    int      `json:"active_sensors"`
+	AvgPM25          *float64 `json:"avg_pm2_5"`
+	PoorConnection   int      `json:"poor_connection"`
+	NetworkStability float64  `json:"network_stability"`
+}
+
 type Cursor struct {
 	After  *string `json:"after"`
 	Before *string `json:"before"`
@@ -54,4 +61,8 @@ type GetReadingsResponse struct {
 
 type GetStationsResponse struct {
 	Data []Station `json:"data"`
+}
+
+type GetStatsResponse struct {
+	Data Stats `json:"data"`
 }

@@ -38,6 +38,11 @@ WHERE measured_at >= ?
 GROUP BY client_id
 `
 
+type receivedRow struct {
+	ClientID string
+	Received int
+}
+
 func GetStations(ctx context.Context) (*sensor_readings_collector_pkg.GetStationsResponse, *response.Error) {
 	gdb := db.GetDatabaseFromContext(ctx)
 	districts := geo.FromContext(ctx)
@@ -52,11 +57,6 @@ func GetStations(ctx context.Context) (*sensor_readings_collector_pkg.GetStation
 
 	cfg := display.FromContext(ctx)
 	cutoff := time.Now().UTC().Add(-time.Duration(cfg.ConnectionWindowMinutes) * time.Minute)
-
-	type receivedRow struct {
-		ClientID string
-		Received int
-	}
 
 	var received []receivedRow
 
