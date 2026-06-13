@@ -85,7 +85,7 @@ func GetStations(ctx context.Context) (*sensor_readings_collector_pkg.GetStation
 		}
 
 		band := sensor_readings_collector_pkg.BandFor(s.PM25)
-		district := districts.DistrictFor(s.Latitude, s.Longitude)
+		district := districts.DistrictForClient(s.ID, s.Latitude, s.Longitude)
 
 		data[i] = sensor_readings_collector_pkg.Station{
 			ID:         s.ID,

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/planar"
@@ -31,6 +32,9 @@ type District struct {
 
 type DistrictIndex struct {
 	districts []District
+
+	mu    sync.RWMutex
+	cache map[string]string
 }
 
 func (d *DistrictIndex) DistrictFor(lat float64, lng float64) string {
@@ -45,6 +49,22 @@ func (d *DistrictIndex) DistrictFor(lat float64, lng float64) string {
 		}
 	}
 	return ""
+}
+
+func (d *DistrictIndex) DistrictForClient(id string, lat, lng float64) string {
+	d.mu.RLock()
+	district, ok := d.cache[id]
+	d.mu.RUnlock()
+	if ok {
+		return district
+	}
+
+	district = d.DistrictFor(lat, lng)
+
+	d.mu.Lock()
+	d.cache[id] = district
+	d.mu.Unlock()
+	return district
 }
 
 // coordinates decodes straight into orb.MultiPolygon: that type is already the
@@ -88,5 +108,8 @@ func Load(path string) (*DistrictIndex, error) {
 		return nil, fmt.Errorf("districts geojson %q has no usable features", path)
 	}
 
-	return &DistrictIndex{districts: districts}, nil
+	return &DistrictIndex{
+		districts: districts,
+		cache:     make(map[string]string),
+	}, nil
 }

@@ -1,6 +1,9 @@
 package geo
 
-import "testing"
+import (
+	"sync"
+	"testing"
+)
 
 const districtsPath = "../../../assets/berlin-districts.geojson"
 
@@ -36,4 +39,43 @@ func Test_DistrictFor(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_DistrictForClient_MatchesDistrictFor(t *testing.T) {
+	idx, err := Load(districtsPath)
+	if err != nil {
+		t.Fatalf("load districts: %v", err)
+	}
+
+	// First call (miss, fills cache) and second call (hit) both agree with the
+	// uncached DistrictFor.
+	want := idx.DistrictFor(52.5163, 13.3777) // Mitte
+	for i := 0; i < 2; i++ {
+		if got := idx.DistrictForClient("client-1", 52.5163, 13.3777); got != want {
+			t.Fatalf("call %d: DistrictForClient = %q, want %q", i, got, want)
+		}
+	}
+}
+
+// Run with -race: many goroutines hammering the shared cache concurrently must
+// not trip the race detector or panic on concurrent map access. Mixes repeats of
+// one id (read contention on a hit) with distinct ids (write contention on misses).
+func Test_DistrictForClient_Concurrent(t *testing.T) {
+	idx, err := Load(districtsPath)
+	if err != nil {
+		t.Fatalf("load districts: %v", err)
+	}
+
+	ids := []string{"a", "a", "a", "b", "c", "d"}
+	var wg sync.WaitGroup
+	for i := 0; i < 200; i++ {
+		for _, id := range ids {
+			wg.Add(1)
+			go func(id string) {
+				defer wg.Done()
+				idx.DistrictForClient(id, 52.5163, 13.3777)
+			}(id)
+		}
+	}
+	wg.Wait()
 }
