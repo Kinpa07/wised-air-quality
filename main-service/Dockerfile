@@ -25,6 +25,9 @@ RUN apk add --no-cache ca-certificates
 
 COPY config/config.yaml /config.yaml
 
+# Districts GeoJSON read at startup; binary runs from / so assets/ resolves here.
+COPY assets/ /assets/
+
 COPY --from=builder /service /service
 
 EXPOSE 8080
