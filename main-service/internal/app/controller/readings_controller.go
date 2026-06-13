@@ -32,12 +32,27 @@ func CreateReading(ctx context.Context, req *sensor_readings_collector_pkg.Creat
 		PM10:       *req.Payload.PM10,
 		MeasuredAt: req.Payload.MeasuredAt.UTC(),
 	}
-	result := gdb.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "client_id"}, {Name: "measured_at"}},
-		DoNothing: true,
-	}).Create(&reading)
+	latest := database.LatestReading{
+		ClientID:   reading.ClientID,
+		PM25:       reading.PM25,
+		PM10:       reading.PM10,
+		MeasuredAt: reading.MeasuredAt,
+	}
 
-	if result.Error != nil {
+	var created bool
+	err = gdb.Transaction(func(tx *gorm.DB) error {
+		result := tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "client_id"}, {Name: "measured_at"}},
+			DoNothing: true,
+		}).Create(&reading)
+		if result.Error != nil {
+			return result.Error
+		}
+		created = result.RowsAffected > 0
+
+		return database.UpsertLatestReading(tx, latest)
+	})
+	if err != nil {
 		return nil, response.NewResponseError(response.ErrorCodeInternal, response.ErrorMessageInternalServerError)
 	}
 
@@ -48,7 +63,7 @@ func CreateReading(ctx context.Context, req *sensor_readings_collector_pkg.Creat
 			PM10:       reading.PM10,
 			MeasuredAt: reading.MeasuredAt,
 		},
-		Created: result.RowsAffected > 0,
+		Created: created,
 	}, nil
 
 }

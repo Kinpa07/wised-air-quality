@@ -112,6 +112,60 @@ func Test_CreateReading(t *testing.T) {
 	}
 }
 
+func latestRow(t *testing.T, gdb *gorm.DB, id string) database.LatestReading {
+	t.Helper()
+	var lr database.LatestReading
+	if err := gdb.First(&lr, "client_id = ?", id).Error; err != nil {
+		t.Fatalf("load latest for %s: %v", id, err)
+	}
+	return lr
+}
+
+// The latest-reading cache must always hold the newest reading per station,
+// surviving out-of-order arrivals and duplicate re-deliveries.
+func Test_CreateReading_MaintainsLatestCache(t *testing.T) {
+	ctx, gdb := ctxWithDB(t)
+	testutil.SeedClient(t, gdb, knownClient)
+
+	base := time.Date(2026, 6, 12, 9, 0, 0, 0, time.UTC)
+	mustIngest := func(pm25, pm10 float64, ts time.Time) {
+		if _, err := CreateReading(ctx, readingReq(knownClient, pm25, pm10, ts)); err != nil {
+			t.Fatalf("ingest at %s: %v", ts, err)
+		}
+	}
+
+	// 1. first reading creates the cache row
+	mustIngest(10, 20, base)
+	if lr := latestRow(t, gdb, knownClient); lr.PM25 != 10 || !lr.MeasuredAt.Equal(base) {
+		t.Fatalf("after first: want pm 10 @ base, got pm %v @ %s", lr.PM25, lr.MeasuredAt)
+	}
+
+	// 2. newer reading advances the cache
+	newer := base.Add(5 * time.Minute)
+	mustIngest(14, 22, newer)
+	if lr := latestRow(t, gdb, knownClient); lr.PM25 != 14 || !lr.MeasuredAt.Equal(newer) {
+		t.Fatalf("after newer: want pm 14 @ newer, got pm %v @ %s", lr.PM25, lr.MeasuredAt)
+	}
+
+	// 3. out-of-order older reading must NOT regress the cache (pm 99 is a sentinel)
+	mustIngest(99, 99, base.Add(-time.Hour))
+	if lr := latestRow(t, gdb, knownClient); lr.PM25 != 14 || !lr.MeasuredAt.Equal(newer) {
+		t.Fatalf("after older: cache regressed to pm %v @ %s", lr.PM25, lr.MeasuredAt)
+	}
+
+	// 4. duplicate re-delivery of the newer reading is a no-op
+	mustIngest(14, 22, newer)
+	if lr := latestRow(t, gdb, knownClient); lr.PM25 != 14 || !lr.MeasuredAt.Equal(newer) {
+		t.Fatalf("after dup: cache changed unexpectedly to pm %v @ %s", lr.PM25, lr.MeasuredAt)
+	}
+
+	var cacheCount int64
+	gdb.Model(&database.LatestReading{}).Count(&cacheCount)
+	if cacheCount != 1 {
+		t.Fatalf("want exactly 1 cache row, got %d", cacheCount)
+	}
+}
+
 func Test_CreateReading_NormalizesMeasuredAtToUTC(t *testing.T) {
 	ctx, gdb := ctxWithDB(t)
 	testutil.SeedClient(t, gdb, knownClient)

@@ -90,4 +90,11 @@ func SeedReading(tb testing.TB, gdb *gorm.DB, clientID string, pm25, pm10 float6
 	if err := gdb.Create(&reading).Error; err != nil {
 		tb.Fatalf("seed reading for %s at %s: %v", clientID, measuredAt, err)
 	}
+
+	// Maintain the latest-reading cache exactly as ingest does, so seeded data
+	// shows up in the fleet snapshot/stats queries that read from it.
+	latest := database.LatestReading{ClientID: clientID, PM25: pm25, PM10: pm10, MeasuredAt: measuredAt.UTC()}
+	if err := database.UpsertLatestReading(gdb, latest); err != nil {
+		tb.Fatalf("seed latest for %s at %s: %v", clientID, measuredAt, err)
+	}
 }

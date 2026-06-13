@@ -38,3 +38,13 @@ type StationRow struct {
 	PM10       *float64
 	MeasuredAt *time.Time
 }
+
+// LatestReading is the denormalized current reading per station, updated on
+// ingest so the fleet snapshot reads one row per station instead of scanning
+// the whole readings history.
+type LatestReading struct {
+	ClientID   string  `gorm:"primaryKey;size:36"`
+	PM25       float64 `gorm:"column:pm2_5"`
+	PM10       float64
+	MeasuredAt time.Time
+}

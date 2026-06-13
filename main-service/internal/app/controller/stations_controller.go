@@ -12,20 +12,14 @@ import (
 	"github.com/SintroSecurity/go-libraries/router/response"
 )
 
-// latestPerStationQuery left-joins every client to its single newest reading
-// (rn = 1). The deleted_at filter is manual: raw SQL bypasses GORM's soft-delete scope.
+// latestPerStationQuery left-joins every client to its cached latest reading
+// (maintained on ingest), avoiding a scan of the whole readings history. The
+// deleted_at filter is manual: raw SQL bypasses GORM's soft-delete scope.
 const latestPerStationQuery = `
 SELECT c.id, c.type, c.latitude, c.longitude,
-       r.pm2_5, r.pm10, r.measured_at
+       lr.pm2_5, lr.pm10, lr.measured_at
 FROM clients c
-LEFT JOIN (
-    SELECT * FROM (
-        SELECT *, ROW_NUMBER() OVER (
-            PARTITION BY client_id ORDER BY measured_at DESC
-        ) AS rn
-        FROM readings
-    ) t WHERE rn = 1
-) r ON c.id = r.client_id
+LEFT JOIN latest_readings lr ON lr.client_id = c.id
 WHERE c.deleted_at IS NULL
 `
 

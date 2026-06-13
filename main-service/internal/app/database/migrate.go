@@ -15,6 +15,6 @@ func MigrateDatabase(gdb *gorm.DB) error {
 
 func Migrate(db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
-		return tx.AutoMigrate(&Client{}, &Reading{})
+		return tx.AutoMigrate(&Client{}, &Reading{}, &LatestReading{})
 	})
 }
