@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"go-service-skeleton/internal/app/database"
+	"go-service-skeleton/internal/app/geo"
 	server2 "go-service-skeleton/internal/app/server"
 	"go-service-skeleton/internal/app/worker"
 	"net/http"
@@ -15,6 +16,8 @@ import (
 )
 
 const ServiceName = "sensor-readings-collector"
+
+const districtsPath = "assets/berlin-districts.geojson"
 
 func InitRouterAndRoutingTable(ctx context.Context, prometheusRegisterer prometheus.Registerer, cfg *Config, rootMiddleware func(next http.Handler) http.Handler) (*router.Router, error) {
 	r := server2.NewRouter(ServiceName, prometheusRegisterer, cfg.Server, cfg.Logger, rootMiddleware)
@@ -45,6 +48,11 @@ func StartService(ctx context.Context, cfg *Config) error {
 	}
 	ctx = db.NewContextWithDatabase(ctx, gdb)
 
+	districts, err := geo.Load(districtsPath)
+	if err != nil {
+		return err
+	}
+
 	registry := InitMetrics()
 	ctx = metrics.NewContextWithPrometheusRegistry(ctx, registry)
 
@@ -54,7 +62,9 @@ func StartService(ctx context.Context, cfg *Config) error {
 	}
 
 	rootMiddleware := server2.CreateRootMiddleware(&server2.Config{
-		Database: gdb,
+		Database:  gdb,
+		Display:   cfg.Display,
+		Districts: districts,
 	})
 
 	r, err := InitRouterAndRoutingTable(ctx, registry, cfg, rootMiddleware)
