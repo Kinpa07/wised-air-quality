@@ -28,3 +28,13 @@ type Reading struct {
 	MeasuredAt time.Time `gorm:"uniqueIndex:idx_reading_dedup,sort:desc"`
 	CreatedAt  time.Time
 }
+
+type StationRow struct {
+	ID         string
+	Type       sensor_readings_collector_pkg.ClientType
+	Latitude   float64
+	Longitude  float64
+	PM25       *float64 `gorm:"column:pm2_5"`
+	PM10       *float64
+	MeasuredAt *time.Time
+}

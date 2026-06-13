@@ -15,6 +15,18 @@ type Reading struct {
 	PM10       float64   `json:"pm10"`
 	MeasuredAt time.Time `json:"timestamp"`
 }
+type Station struct {
+	ID         string            `json:"id"`
+	Latitude   float64           `json:"lat"`
+	Longitude  float64           `json:"lng"`
+	PM25       *float64          `json:"pm2_5"`
+	PM10       *float64          `json:"pm10"`
+	MeasuredAt *time.Time        `json:"measured_at"`
+	Band       *AQIBand          `json:"band"`
+	District   string            `json:"district"`
+	Stability  float64           `json:"stability"`
+	Connection ConnectionQuality `json:"connection"`
+}
 
 type Cursor struct {
 	After  *string `json:"after"`
@@ -38,4 +50,8 @@ type CreateReadingResponse struct {
 type GetReadingsResponse struct {
 	Data   []Reading `json:"data"`
 	Cursor Cursor    `json:"cursor"`
+}
+
+type GetStationsResponse struct {
+	Data []Station `json:"data"`
 }
