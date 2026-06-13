@@ -6,6 +6,9 @@ logger:
   level: "DEBUG"
 db:
   dialect: "sqlite3"
+  # Small pool; WAL + busy_timeout (see database/open.go) keep concurrent
+  # access safe. Raise for postgres/mysql.
+  maxopenconnections: 4
   sqlite:
     filename: "test.db"
 worker:

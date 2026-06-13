@@ -29,6 +29,10 @@ func Open(ctx context.Context, cfg *db.Config) (*gorm.DB, error) {
 	case "mysql":
 		dialector = mysql.Open(dsn)
 	case "sqlite3":
+		// SQLite concurrency tuning, applied per pooled connection via the DSN:
+		// WAL (readers don't block the writer), busy_timeout (wait for the lock
+		// rather than erroring), immediate txlock (avoid upgrade deadlocks).
+		dsn += "&_journal_mode=WAL&_busy_timeout=5000&_txlock=immediate&_synchronous=NORMAL"
 		dialector = sqlite.Open(dsn)
 	}
 
