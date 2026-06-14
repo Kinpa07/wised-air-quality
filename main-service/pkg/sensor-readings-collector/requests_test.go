@@ -12,6 +12,9 @@ func ptr(f float64) *float64 { return &f }
 
 func Test_CreateReadingRequest_Validation(t *testing.T) {
 	validate := validator.New()
+	// validator.Struct panics on an unregistered custom tag, so wire not_future
+	// onto this local instance (init() does it for the router's validator).
+	validate.RegisterValidation("not_future", notFuture)
 	now := time.Now().UTC()
 
 	cases := []struct {
@@ -31,6 +34,8 @@ func Test_CreateReadingRequest_Validation(t *testing.T) {
 		{"non-finite NaN", ptr(math.NaN()), ptr(23.4), now, true},
 		{"non-finite +Inf", ptr(math.Inf(1)), ptr(23.4), now, true},
 		{"missing timestamp", ptr(14.2), ptr(23.4), time.Time{}, true},
+		{"slight clock skew is tolerated", ptr(14.2), ptr(23.4), now.Add(2 * time.Minute), false},
+		{"far-future timestamp", ptr(14.2), ptr(23.4), now.Add(24 * time.Hour), true},
 	}
 
 	for _, tt := range cases {

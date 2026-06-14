@@ -22,7 +22,7 @@ type CreateReadingRequest struct {
 	Payload  struct {
 		PM25       *float64  `json:"pm2_5" validate:"required,gte=0,lte=1000"`
 		PM10       *float64  `json:"pm10" validate:"required,gte=0,lte=1000"`
-		MeasuredAt time.Time `json:"timestamp" validate:"required"`
+		MeasuredAt time.Time `json:"timestamp" validate:"required,not_future"`
 	} `in:"body=json"`
 }
 
