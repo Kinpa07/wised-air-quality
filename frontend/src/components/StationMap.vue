@@ -83,7 +83,10 @@ watch(
     }
     if (newId) {
       const next = markersById.get(newId);
-      if (next) styleSelected(next);
+      if (next) {
+        styleSelected(next);
+        map.panTo(next.getLatLng());
+      }
     }
   },
 );

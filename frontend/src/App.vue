@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { useStationsStore } from "./stores/stations";
 import StationMap from "./components/StationMap.vue";
+import StationWatchlist from "./components/StationWatchlist.vue";
 import AppCard from "./components/ui/AppCard.vue";
 import AppToggle from "./components/ui/AppToggle.vue";
 import type { Pollutant } from "./types/station";
@@ -29,6 +30,9 @@ onMounted(() => {
         />
       </template>
       <StationMap />
+    </AppCard>
+    <AppCard title="Districts" subtitle="Tracked stations">
+      <StationWatchlist />
     </AppCard>
   </main>
 </template>
