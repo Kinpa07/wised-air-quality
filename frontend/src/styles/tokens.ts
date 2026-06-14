@@ -17,6 +17,9 @@ export const surface = {
   muted: "#8C8A86", // labels, secondary text
 } as const;
 
+// Fallback marker fill for stations with no current reading (no AQI band).
+export const markerNoData = surface.muted;
+
 // Chart-specific fills (PM10 bars are a neutral tan; PM2.5 line reuses
 // aqiColors.elevated).
 export const chart = {
