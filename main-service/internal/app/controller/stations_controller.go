@@ -10,6 +10,7 @@ import (
 
 	"github.com/SintroSecurity/go-libraries/db"
 	"github.com/SintroSecurity/go-libraries/router/response"
+	"gorm.io/gorm"
 )
 
 // latestPerStationQuery left-joins every client to its cached latest reading
@@ -37,6 +38,29 @@ type receivedRow struct {
 	Received int
 }
 
+// connectionRatios is the shared source for the connection metric so GetStations
+// (per-station stability) and GetStats (fleet Network Stability) can't diverge.
+// Stations absent from the count map have zero readings.
+func connectionRatios(gdb *gorm.DB, cfg *display.Config) (map[string]int, int, error) {
+	cutoff := time.Now().UTC().Add(-time.Duration(cfg.ConnectionWindowMinutes) * time.Minute)
+
+	var received []receivedRow
+	if err := gdb.Raw(receivedCountQuery, cutoff).Scan(&received).Error; err != nil {
+		return nil, 0, err
+	}
+
+	countByClient := make(map[string]int, len(received))
+	for _, c := range received {
+		countByClient[c.ClientID] = c.Received
+	}
+
+	expected := 0
+	if cfg.ExpectedIntervalMinutes > 0 {
+		expected = cfg.ConnectionWindowMinutes / cfg.ExpectedIntervalMinutes
+	}
+	return countByClient, expected, nil
+}
+
 func GetStations(ctx context.Context) (*sensor_readings_collector_pkg.GetStationsResponse, *response.Error) {
 	gdb := db.GetDatabaseFromContext(ctx)
 	districts := geo.FromContext(ctx)
@@ -50,26 +74,12 @@ func GetStations(ctx context.Context) (*sensor_readings_collector_pkg.GetStation
 	}
 
 	cfg := display.FromContext(ctx)
-	cutoff := time.Now().UTC().Add(-time.Duration(cfg.ConnectionWindowMinutes) * time.Minute)
-
-	var received []receivedRow
-
-	result = gdb.Raw(receivedCountQuery, cutoff).Scan(&received)
-	if result.Error != nil {
+	countByClient, expected, err := connectionRatios(gdb, cfg)
+	if err != nil {
 		return nil, response.NewResponseError(response.ErrorCodeInternal, response.ErrorMessageInternalServerError)
 	}
 
-	countByClient := make(map[string]int)
-	for _, c := range received {
-		countByClient[c.ClientID] = c.Received
-	}
-
 	data := make([]sensor_readings_collector_pkg.Station, len(stations))
-	expected := 0
-	if cfg.ExpectedIntervalMinutes > 0 {
-		expected = cfg.ConnectionWindowMinutes / cfg.ExpectedIntervalMinutes
-
-	}
 	for i, s := range stations {
 		received := countByClient[s.ID]
 

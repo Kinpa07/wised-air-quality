@@ -22,25 +22,11 @@ func GetStats(ctx context.Context) (*sensor_readings_collector_pkg.GetStatsRespo
 		return nil, response.NewResponseError(response.ErrorCodeInternal, response.ErrorMessageInternalServerError)
 	}
 
-	cutoff := time.Now().UTC().Add(-time.Duration(cfg.ConnectionWindowMinutes) * time.Minute)
-
 	activeCutoff := time.Now().UTC().Add(-time.Duration(cfg.ActiveWindowMinutes) * time.Minute)
 
-	var received []receivedRow
-
-	result = gdb.Raw(receivedCountQuery, cutoff).Scan(&received)
-	if result.Error != nil {
+	countByClient, expected, err := connectionRatios(gdb, cfg)
+	if err != nil {
 		return nil, response.NewResponseError(response.ErrorCodeInternal, response.ErrorMessageInternalServerError)
-	}
-
-	countByClient := make(map[string]int)
-	for _, c := range received {
-		countByClient[c.ClientID] = c.Received
-	}
-
-	expected := 0
-	if cfg.ExpectedIntervalMinutes > 0 {
-		expected = cfg.ConnectionWindowMinutes / cfg.ExpectedIntervalMinutes
 	}
 
 	ratioSum := 0.0
@@ -54,6 +40,8 @@ func GetStats(ctx context.Context) (*sensor_readings_collector_pkg.GetStatsRespo
 			ratio = float64(received) / float64(expected)
 		}
 		ratioSum += ratio
+		// The LEFT JOIN fills all cache columns together, so a non-nil MeasuredAt
+		// guarantees PM25 is non-nil — the deref below is safe.
 		if s.MeasuredAt != nil && s.MeasuredAt.After(activeCutoff) {
 			activeCount++
 			pmSum += *s.PM25
