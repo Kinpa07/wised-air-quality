@@ -2,6 +2,7 @@
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import AqiBadge from "./ui/AqiBadge.vue";
+import StationSparkline from "./StationSparkline.vue";
 import { useStationsStore } from "../stores/stations";
 import type { Station } from "../types/station";
 
@@ -34,6 +35,11 @@ function selectRow(station: Station | null) {
     <Column header="PM2.5">
       <template #body="{ data }: { data: Station }">
         {{ data.pm2_5 ?? "—" }} <AqiBadge :value="data.pm2_5" />
+      </template>
+    </Column>
+    <Column header="24h">
+      <template #body="{ data }: { data: Station }">
+        <StationSparkline :station-id="data.id" />
       </template>
     </Column>
     <Column field="pm10" header="PM10" />
