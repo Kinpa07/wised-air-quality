@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go-service-skeleton/internal/app/database"
+	"go-service-skeleton/internal/app/display"
 	"go-service-skeleton/internal/testutil"
 	sensor_readings_collector_pkg "go-service-skeleton/pkg/sensor-readings-collector"
 
@@ -26,6 +27,8 @@ func ctxWithDB(t *testing.T) (context.Context, *gorm.DB) {
 	t.Helper()
 	gdb := testutil.NewMemDB(t)
 	ctx := db.NewContextWithDatabase(context.Background(), gdb)
+	// GetReading needs DefaultPageSize; metrics tests layer their own config on top.
+	ctx = display.NewContext(ctx, &display.Config{DefaultPageSize: 50})
 	return ctx, gdb
 }
 

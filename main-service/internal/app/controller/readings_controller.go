@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"go-service-skeleton/internal/app/database"
+	"go-service-skeleton/internal/app/display"
 
 	"github.com/SintroSecurity/go-libraries/db"
 	"github.com/SintroSecurity/go-libraries/router/response"
@@ -88,12 +89,20 @@ func GetReading(ctx context.Context, req *sensor_readings_collector_pkg.GetReadi
 		query = query.Where("measured_at >= ?", *req.Since)
 	}
 
+	// DefaultPageSize is both default and ceiling: a client may shrink the page
+	// but not grow it, so ?limit=1000000 can't materialize the whole readings table.
+	cfg := display.FromContext(ctx)
+	limit := cfg.DefaultPageSize
+	if req.Limit != nil && *req.Limit > 0 && *req.Limit < limit {
+		limit = *req.Limit
+	}
+
 	order := paginator.DESC
 	p := sensor_readings_collector_pkg.CreatePaginator(
 		paginator.Cursor{After: req.After, Before: req.Before},
 		&order,
 		[]string{"MeasuredAt"},
-		req.Limit,
+		&limit,
 	)
 
 	var readings []database.Reading
