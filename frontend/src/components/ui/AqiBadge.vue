@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import Tag from "primevue/tag";
 import { colorFor, labelFor } from "../../utils/aqi";
-import { surface, radius, space } from "../../styles/tokens";
+import { surface } from "../../styles/tokens";
 
 const props = defineProps<{
   value: number | null;
@@ -12,24 +13,5 @@ const background = computed(() => (props.value === null ? surface.muted : colorF
 </script>
 
 <template>
-  <span
-    class="aqi-badge"
-    :style="{
-      background,
-      color: surface.card,
-      borderRadius: `${radius.sm}px`,
-      padding: `${space.xs}px ${space.sm}px`,
-    }"
-  >
-    {{ label }}
-  </span>
+  <Tag :value="label" :style="{ background, color: surface.card }" />
 </template>
-
-<style scoped>
-.aqi-badge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-</style>
