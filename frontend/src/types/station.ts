@@ -1,5 +1,6 @@
 export type StationBand = "Good" | "Moderate" | "Elevated" | "Unhealthy";
 export type ConnectionQuality = "Good" | "Poor";
+export type Pollutant = "pm2_5" | "pm10";
 
 export interface Station {
   id: string;
