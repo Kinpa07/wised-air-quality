@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { useStationsStore } from "./stores/stations";
 import StationMap from "./components/StationMap.vue";
+import AppCard from "./components/ui/AppCard.vue";
 
 const store = useStationsStore();
 onMounted(() => {
@@ -11,7 +12,8 @@ onMounted(() => {
 
 <template>
   <main style="padding: 1rem">
-    <h1>Wised Berlin Air-Quality Monitor</h1>
-    <StationMap />
+    <AppCard title="Sensor Map" subtitle="Live AQI by station">
+      <StationMap />
+    </AppCard>
   </main>
 </template>
