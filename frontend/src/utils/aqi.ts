@@ -19,3 +19,8 @@ export function bandFor(value: number): AqiBand {
 export function colorFor(value: number): string {
   return aqiColors[bandFor(value)];
 }
+
+export function labelFor(value: number): string {
+  const match = AQI_BANDS.find((b) => value < b.max);
+  return match ? match.label : "Unhealthy";
+}
