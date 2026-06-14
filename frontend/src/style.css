@@ -1,0 +1,17 @@
+/* Global reset + base. App-specific colours/spacing come from the PrimeVue
+   theme and src/styles/tokens.ts — this file holds only structural defaults. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+}
