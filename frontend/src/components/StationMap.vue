@@ -4,17 +4,12 @@ import L from "leaflet";
 import { useStationsStore } from "../stores/stations";
 import { colorFor, AQI_BANDS } from "../utils/aqi";
 import { markerNoData, surface, aqiColors, space, radius } from "../styles/tokens";
-import type { Station, Pollutant } from "../types/station";
+import type { Station } from "../types/station";
 
 const store = useStationsStore();
 let map: L.Map;
 
 const markersById = new Map<string, L.CircleMarker>();
-
-const pollutantOptions: { value: Pollutant; label: string }[] = [
-  { value: "pm2_5", label: "PM2.5" },
-  { value: "pm10", label: "PM10" },
-];
 
 function fillFor(station: Station): string {
   const value = station[store.pollutant];
@@ -97,23 +92,6 @@ watch(
 <template>
   <div class="map-wrap">
     <div id="map" style="height: 500px"></div>
-    <div class="toggle">
-      <button
-        v-for="opt in pollutantOptions"
-        :key="opt.value"
-        class="toggle__btn"
-        :style="{
-          background: store.pollutant === opt.value ? surface.text : surface.card,
-          color: store.pollutant === opt.value ? surface.card : surface.muted,
-          border: `1px solid ${surface.border}`,
-          borderRadius: `${radius.sm}px`,
-          padding: `${space.xs}px ${space.sm}px`,
-        }"
-        @click="store.setPollutant(opt.value)"
-      >
-        {{ opt.label }}
-      </button>
-    </div>
     <div
       class="legend"
       :style="{
@@ -139,18 +117,6 @@ watch(
 <style scoped>
 .map-wrap {
   position: relative;
-}
-.toggle {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 1000;
-  display: flex;
-  gap: 4px;
-}
-.toggle__btn {
-  font-size: 0.8rem;
-  cursor: pointer;
 }
 .legend {
   position: absolute;
