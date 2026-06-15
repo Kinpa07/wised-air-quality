@@ -61,4 +61,11 @@ onMounted(() => {
 .dashboard__grid > * {
   min-width: 0;
 }
+/* Below the 1600px cap (laptops), the two half-width cards get too narrow for
+   the 7-column watchlist. Stack them so the table spans full width. */
+@media (max-width: 1599px) {
+  .dashboard__grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
