@@ -52,7 +52,9 @@ function selectRow(station: Station | null) {
           <StationSparkline :station-id="data.id" />
         </template>
       </Column>
-      <Column field="pm10" header="PM10" />
+      <Column header="PM10">
+        <template #body="{ data }: { data: Station }">{{ data.pm10 ?? "—" }}</template>
+      </Column>
       <Column field="connection" header="Connection" />
       <Column header="Stability">
         <template #body="{ data }: { data: Station }">{{ data.stability.toFixed(0) }}%</template>
