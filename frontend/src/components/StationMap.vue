@@ -37,9 +37,9 @@ onMounted(() => {
   }).addTo(map);
 });
 
-// Draw (or redraw) markers whenever the fleet data OR the selected pollutant changes.
+// Rebuild markers when the fleet data (or the active search filter) changes.
 watch(
-  () => [store.filteredStations, store.pollutant],
+  () => store.filteredStations,
   () => {
     if (!map) return;
 
@@ -65,6 +65,22 @@ watch(
     });
 
     // Re-apply the highlight if a station was already selected before a redraw.
+    if (store.selectedStationId) {
+      const marker = markersById.get(store.selectedStationId);
+      if (marker) styleSelected(marker);
+    }
+  },
+);
+
+// Toggling the pollutant only changes colours — recolour markers in place rather
+// than tearing down and rebuilding all ~10k of them.
+watch(
+  () => store.pollutant,
+  () => {
+    store.filteredStations.forEach((station) => {
+      const marker = markersById.get(station.id);
+      if (marker) styleBase(marker, station);
+    });
     if (store.selectedStationId) {
       const marker = markersById.get(store.selectedStationId);
       if (marker) styleSelected(marker);
