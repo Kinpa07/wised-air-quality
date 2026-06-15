@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useStationsStore } from "./stores/stations";
 import DashboardHeader from "./components/DashboardHeader.vue";
 import KpiPanel from "./components/KpiPanel.vue";
@@ -17,6 +17,12 @@ const pollutantOptions: { value: Pollutant; label: string }[] = [
   { value: "pm2_5", label: "PM2.5" },
   { value: "pm10", label: "PM10" },
 ];
+
+const chartSubtitle = computed(() => {
+  const s = store.selectedStation;
+  if (!s) return "Select a station";
+  return `${s.district || "Unknown"} · ${s.id.slice(0, 8)}…`;
+});
 
 onMounted(() => {
   store.fetchStations();
@@ -46,7 +52,7 @@ onMounted(() => {
         <StationWatchlist />
       </AppCard>
     </div>
-    <AppCard title="Particulate Concentration over Time" subtitle="PM10 vs PM2.5 over time">
+    <AppCard title="Particulate Concentration over Time" :subtitle="chartSubtitle">
       <TrendChart />
     </AppCard>
   </main>
