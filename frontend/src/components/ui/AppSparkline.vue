@@ -1,47 +1,51 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import Chart from "primevue/chart";
 import { chart as chartColors } from "../../styles/tokens";
 
 const props = defineProps<{
   values: number[];
 }>();
 
-const data = computed(() => ({
-  labels: props.values.map((_, i) => i),
-  datasets: [
-    {
-      data: props.values,
-      borderColor: chartColors.line,
-      borderWidth: 1.5,
-      tension: 0.4,
-      pointRadius: 0,
-      fill: false,
-    },
-  ],
-}));
+const WIDTH = 80;
+const HEIGHT = 32;
+const PAD = 2; // keep the stroke off the edges
 
-const options = {
-  responsive: true,
-  maintainAspectRatio: false,
-  animation: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: { enabled: false },
-  },
-  scales: {
-    x: { display: false },
-    y: { display: false },
-  },
-};
+// Map the values to a polyline point string, scaled to the box. Flat input
+// (all equal) avoids a divide-by-zero via the `|| 1` span fallback.
+const points = computed(() => {
+  const vals = props.values;
+  if (vals.length === 0) return "";
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const span = max - min || 1;
+  const stepX = vals.length > 1 ? (WIDTH - PAD * 2) / (vals.length - 1) : 0;
+  return vals
+    .map((v, i) => {
+      const x = PAD + i * stepX;
+      const y = PAD + (1 - (v - min) / span) * (HEIGHT - PAD * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+});
 </script>
 
 <template>
-  <Chart type="line" :data="data" :options="options" class="sparkline" />
+  <svg class="sparkline" :viewBox="`0 0 ${WIDTH} ${HEIGHT}`">
+    <polyline
+      v-if="points"
+      :points="points"
+      fill="none"
+      :stroke="chartColors.line"
+      stroke-width="1.5"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+  </svg>
 </template>
 
 <style scoped>
 .sparkline {
+  display: block;
   width: 80px;
   height: 32px;
 }
