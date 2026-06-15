@@ -29,7 +29,6 @@ Thumbs.db
 
 # ── Local-only (not part of the submission) ──
 docs/
-NOTES.md
 .claude/
 /CLAUDE.md
 wised-interview-simulator.tar
