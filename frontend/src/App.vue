@@ -2,6 +2,7 @@
 import { onMounted } from "vue";
 import { useStationsStore } from "./stores/stations";
 import DashboardHeader from "./components/DashboardHeader.vue";
+import KpiPanel from "./components/KpiPanel.vue";
 import StationMap from "./components/StationMap.vue";
 import StationWatchlist from "./components/StationWatchlist.vue";
 import AppCard from "./components/ui/AppCard.vue";
@@ -18,6 +19,7 @@ const pollutantOptions: { value: Pollutant; label: string }[] = [
 
 onMounted(() => {
   store.fetchStations();
+  store.fetchStats();
 });
 </script>
 
@@ -27,6 +29,7 @@ onMounted(() => {
     :style="{ padding: `${space.md}px`, gap: `${space.md}px`, maxWidth: `${sizes.maxWidth}px` }"
   >
     <DashboardHeader />
+    <KpiPanel />
     <div class="dashboard__grid" :style="{ gap: `${space.md}px` }">
       <AppCard title="Sensor Map" subtitle="Live AQI by station">
         <template #actions>
