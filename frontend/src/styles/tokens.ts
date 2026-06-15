@@ -46,6 +46,7 @@ export const radius = {
 export const sizes = {
   badge: 96, // uniform AQI pill width; fits the longest label ("Unhealthy")
   map: 460, // Leaflet needs an explicit pixel height
+  chart: 340, // trend chart body height (Chart.js needs an explicit height)
   search: 280,
   maxWidth: 1600, // cap + centre the dashboard so it doesn't stretch on 4K
   titleRow: 40, // so a card header with a toggle matches a text-only one

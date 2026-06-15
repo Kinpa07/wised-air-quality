@@ -5,6 +5,7 @@ import DashboardHeader from "./components/DashboardHeader.vue";
 import KpiPanel from "./components/KpiPanel.vue";
 import StationMap from "./components/StationMap.vue";
 import StationWatchlist from "./components/StationWatchlist.vue";
+import TrendChart from "./components/TrendChart.vue";
 import AppCard from "./components/ui/AppCard.vue";
 import AppToggle from "./components/ui/AppToggle.vue";
 import { space, sizes } from "./styles/tokens";
@@ -45,6 +46,9 @@ onMounted(() => {
         <StationWatchlist />
       </AppCard>
     </div>
+    <AppCard title="Particulate Concentration over Time" subtitle="PM10 vs PM2.5 over time">
+      <TrendChart />
+    </AppCard>
   </main>
 </template>
 
