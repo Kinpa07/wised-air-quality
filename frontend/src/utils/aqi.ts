@@ -11,9 +11,13 @@ export const AQI_BANDS = [
   { band: "unhealthy", label: "Unhealthy", min: 55, max: Infinity },
 ] as const;
 
+// One lookup the rest derive from. The last band (max Infinity) always matches
+function entryFor(value: number) {
+  return AQI_BANDS.find((b) => value < b.max) ?? AQI_BANDS[AQI_BANDS.length - 1]!;
+}
+
 export function bandFor(value: number): AqiBand {
-  const match = AQI_BANDS.find((b) => value < b.max);
-  return match ? match.band : "unhealthy";
+  return entryFor(value).band;
 }
 
 export function colorFor(value: number): string {
@@ -21,6 +25,5 @@ export function colorFor(value: number): string {
 }
 
 export function labelFor(value: number): string {
-  const match = AQI_BANDS.find((b) => value < b.max);
-  return match ? match.label : "Unhealthy";
+  return entryFor(value).label;
 }
