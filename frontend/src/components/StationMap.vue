@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
 import L from "leaflet";
+import Skeleton from "primevue/skeleton";
 import { useStationsStore } from "../stores/stations";
 import { colorFor, AQI_BANDS } from "../utils/aqi";
 import { markerNoData, surface, aqiColors, space, radius, sizes } from "../styles/tokens";
@@ -112,6 +113,14 @@ watch(
   <div class="map-wrap">
     <div id="map" :style="{ height: `${sizes.map}px` }"></div>
     <div
+      v-if="store.stationsLoading || store.stationsError"
+      class="map-overlay"
+      :style="{ background: surface.card, color: surface.muted }"
+    >
+      <Skeleton v-if="store.stationsLoading" width="100%" height="100%" />
+      <span v-else>Couldn’t load stations.</span>
+    </div>
+    <div
       class="legend"
       :style="{
         background: surface.card,
@@ -136,6 +145,16 @@ watch(
 <style scoped>
 .map-wrap {
   position: relative;
+}
+/* Covers the always-mounted Leaflet container (incl. its controls at z-index
+   ~1000) while the fleet loads or on a load error. */
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .legend {
   position: absolute;

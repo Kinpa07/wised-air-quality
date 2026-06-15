@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
+import Skeleton from "primevue/skeleton";
 import AqiBadge from "./ui/AqiBadge.vue";
 import StationSparkline from "./StationSparkline.vue";
 import { useStationsStore } from "../stores/stations";
@@ -18,7 +19,12 @@ function selectRow(station: Station | null) {
   <!-- Fixed height = the map's, so the cards align; scroll-height="flex" makes
        the table body fill what's left under the header. -->
   <div class="watchlist-wrap" :style="{ height: `${sizes.map}px` }">
+    <Skeleton v-if="store.stationsLoading" width="100%" height="100%" />
+    <div v-else-if="store.stationsError" class="watchlist__msg" :style="{ color: surface.muted }">
+      Couldn’t load stations.
+    </div>
     <DataTable
+      v-else
       :value="store.filteredStations"
       data-key="id"
       selection-mode="single"
@@ -59,6 +65,9 @@ function selectRow(station: Station | null) {
       <Column header="Stability">
         <template #body="{ data }: { data: Station }">{{ data.stability.toFixed(0) }}%</template>
       </Column>
+      <template #empty>
+        <span :style="{ color: surface.muted }">No stations to show.</span>
+      </template>
     </DataTable>
   </div>
 </template>
@@ -77,5 +86,11 @@ function selectRow(station: Station | null) {
   font-weight: 600;
   min-width: 40px; /* fixed so the badge after it always starts at the same x */
   text-align: right;
+}
+.watchlist__msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 </style>
