@@ -9,6 +9,7 @@ export interface Station {
   pm2_5: number | null;
   pm10: number | null;
   measured_at: string | null;
+  // Backend's PM2.5-only band; unused — the UI derives per-pollutant bands via bandFor().
   band: StationBand | null;
   district: string;
   stability: number;
