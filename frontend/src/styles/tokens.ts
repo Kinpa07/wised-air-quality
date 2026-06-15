@@ -41,3 +41,12 @@ export const radius = {
   md: 8,
   lg: 12,
 } as const;
+
+// Fixed pixel sizes for elements that need a consistent width/height.
+export const sizes = {
+  badge: 96, // uniform AQI pill width; fits the longest label ("Unhealthy")
+  map: 460, // Leaflet needs an explicit pixel height
+  search: 280,
+  maxWidth: 1600, // cap + centre the dashboard so it doesn't stretch on 4K
+  titleRow: 40, // so a card header with a toggle matches a text-only one
+} as const;

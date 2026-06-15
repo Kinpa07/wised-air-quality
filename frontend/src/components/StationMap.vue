@@ -3,7 +3,7 @@ import { onMounted, watch } from "vue";
 import L from "leaflet";
 import { useStationsStore } from "../stores/stations";
 import { colorFor, AQI_BANDS } from "../utils/aqi";
-import { markerNoData, surface, aqiColors, space, radius } from "../styles/tokens";
+import { markerNoData, surface, aqiColors, space, radius, sizes } from "../styles/tokens";
 import type { Station } from "../types/station";
 
 const store = useStationsStore();
@@ -39,14 +39,14 @@ onMounted(() => {
 
 // Draw (or redraw) markers whenever the fleet data OR the selected pollutant changes.
 watch(
-  () => [store.stations, store.pollutant],
+  () => [store.filteredStations, store.pollutant],
   () => {
     if (!map) return;
 
     markersById.forEach((marker) => marker.remove());
     markersById.clear();
 
-    store.stations.forEach((station) => {
+    store.filteredStations.forEach((station) => {
       const color = fillFor(station);
       const marker = L.circleMarker([station.lat, station.lng], {
         color,
@@ -94,7 +94,7 @@ watch(
 
 <template>
   <div class="map-wrap">
-    <div id="map" style="height: 500px"></div>
+    <div id="map" :style="{ height: `${sizes.map}px` }"></div>
     <div
       class="legend"
       :style="{

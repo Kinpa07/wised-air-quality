@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import Tag from "primevue/tag";
 import { colorFor, labelFor } from "../../utils/aqi";
-import { surface } from "../../styles/tokens";
+import { surface, sizes } from "../../styles/tokens";
 
 const props = defineProps<{
   value: number | null;
@@ -13,5 +13,13 @@ const background = computed(() => (props.value === null ? surface.muted : colorF
 </script>
 
 <template>
-  <Tag :value="label" :style="{ background, color: surface.card }" />
+  <Tag
+    :value="label"
+    :style="{
+      background,
+      color: surface.card,
+      minWidth: `${sizes.badge}px`,
+      justifyContent: 'center',
+    }"
+  />
 </template>

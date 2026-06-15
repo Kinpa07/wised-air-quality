@@ -42,7 +42,7 @@ const options = {
 
 <style scoped>
 .sparkline {
-  width: 120px;
-  height: 36px;
+  width: 80px;
+  height: 32px;
 }
 </style>

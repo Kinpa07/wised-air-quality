@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Card from "primevue/card";
+import { sizes } from "../../styles/tokens";
 
 defineProps<{
   title: string;
@@ -10,7 +11,7 @@ defineProps<{
 <template>
   <Card>
     <template #title>
-      <div class="app-card__title-row">
+      <div class="app-card__title-row" :style="{ minHeight: `${sizes.titleRow}px` }">
         <span>{{ title }}</span>
         <slot name="actions" />
       </div>
